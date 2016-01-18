@@ -30,6 +30,11 @@ namespace Parchive.Library.PAR2
         /// The Input File Slice Checksum packets of this recovery set.
         /// </summary>
         private List<InputFileSliceChecksumPacket> _InputFileSliceChecksums = new List<InputFileSliceChecksumPacket>();
+
+        /// <summary>
+        /// The Recovery Slice packets of this recovery set.
+        /// </summary>
+        private List<RecoverySlicePacket> _RecoverySlices = new List<RecoverySlicePacket>();
         #endregion
 
         #region Constructors
@@ -69,6 +74,10 @@ namespace Parchive.Library.PAR2
                         else if (packet is InputFileSliceChecksumPacket)
                         {
                             _InputFileSliceChecksums.Add((InputFileSliceChecksumPacket)packet);
+                        }
+                        else if (packet is RecoverySlicePacket)
+                        {
+                            _RecoverySlices.Add((RecoverySlicePacket)packet);
                         }
                     }
 

@@ -13,8 +13,11 @@ namespace Parchive.Library.PAR2.Packets
     [Packet(0x00302E3220524150, 0x000000006E69614D)]
     public class MainPacket : Packet
     {
-        #region Properties
+        #region Fields
         private UInt64 _SliceSize;
+        #endregion
+
+        #region Properties
 
         /// <summary>
         /// The size of slices. Must be a multiple of 4.
@@ -35,12 +38,46 @@ namespace Parchive.Library.PAR2.Packets
                 _SliceSize = value;
             }
         }
+
+        /// <summary>
+        /// Number of files in the recovery set.
+        /// </summary>
+        public UInt32 NumFiles
+        {
+            get
+            {
+                return (UInt32)RecoveryFileIDs.Count;
+            }
+        }
+
+        /// <summary>
+        /// The file IDs of the recovery files.
+        /// </summary>
+        public List<byte[]> RecoveryFileIDs { get; set; } = new List<byte[]>();
+
+        /// <summary>
+        /// The file IDs of the non-recovery files.
+        /// </summary>
+        public List<byte[]> NonRecoveryFileIDs { get; set; } = new List<byte[]>();
         #endregion
 
         #region Packet Members
-        protected override void Initialize(Stream input, long length)
+        protected override void Initialize()
         {
-            throw new NotImplementedException();
+            SliceSize = _Reader.ReadUInt64();
+            var numFiles = _Reader.ReadUInt32();
+
+            for (var i = 0; i < numFiles; ++i)
+            {
+                byte[] fileId = _Reader.ReadBytes(16);
+                RecoveryFileIDs.Add(fileId);
+            }
+
+            while (_Reader.BaseStream.Position < (_Offset + _Length))
+            {
+                byte[] fileId = _Reader.ReadBytes(16);
+                NonRecoveryFileIDs.Add(fileId);
+            }
         }
         #endregion
     }

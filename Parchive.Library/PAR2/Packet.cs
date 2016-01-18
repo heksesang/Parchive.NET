@@ -70,47 +70,49 @@ namespace Parchive.Library.PAR2
 
             if (input.Position < input.Length)
             {
-                using (var br = new BinaryReader(input, Encoding.UTF8, true))
+                var br = new BinaryReader(input, Encoding.UTF8, true);
+
+                if (br.ReadUInt64() != Signature)
                 {
-                    if (br.ReadUInt64() != Signature)
-                    {
-                        throw new Exception("Invalid PAR2 header signature.");
-                    }
-
-                    var length = br.ReadInt64() - 64;
-                    var hash = br.ReadBytes(16);
-                    var recoverySetID = br.ReadBytes(16);
-                    var packetType = new PacketType(br.ReadBytes(16));
-
-                    if (length < 0 || (length % 4) != 0)
-                    {
-                        throw new InvalidPacketError("Invalid packet length.");
-                    }
-
-                    Type t;
-                    if (!SupportedPackets.TryGetValue(packetType, out t))
-                    {
-                        input.Seek(length, SeekOrigin.Current);
-                        throw new UnsupportedPacketError(packetType);
-                    }
-
-                    packet = Activator.CreateInstance(t) as Packet;
-
-                    packet._Stream = input;
-                    packet._Offset = input.Position;
-
-                    packet.Hash = hash;
-                    packet.RecoverySetID = recoverySetID;
-                    try
-                    {
-                        packet.Initialize(input, length);
-                    }
-                    catch (NotImplementedException)
-                    {
-                        Debug.WriteLine(packet.GetType().Name + " isn't implemented.");
-                    }
-                    input.Seek(packet._Offset + length, SeekOrigin.Begin);
+                    throw new Exception("Invalid PAR2 header signature.");
                 }
+
+                var length = br.ReadInt64() - 64;
+                var hash = br.ReadBytes(16);
+                var recoverySetID = br.ReadBytes(16);
+                var packetType = new PacketType(br.ReadBytes(16));
+
+                if (length < 0 || (length % 4) != 0)
+                {
+                    throw new InvalidPacketError("Invalid packet length.");
+                }
+
+                Type t;
+                if (!SupportedPackets.TryGetValue(packetType, out t))
+                {
+                    input.Seek(length, SeekOrigin.Current);
+                    throw new UnsupportedPacketError(packetType);
+                }
+
+                packet = Activator.CreateInstance(t) as Packet;
+
+                packet._Reader = br;
+                packet._Offset = br.BaseStream.Position;
+                packet._Length = length;
+
+                packet.Checksum = hash;
+                packet.RecoverySetID = recoverySetID;
+
+                try
+                {
+                    packet.Initialize();
+                }
+                catch (NotImplementedException)
+                {
+                    Debug.WriteLine(packet.GetType().Name + " isn't implemented.");
+                }
+
+                input.Seek(packet._Offset + packet._Length, SeekOrigin.Begin);
             }
 
             return packet;
@@ -118,15 +120,17 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Fields
-        protected Stream _Stream;
+        protected BinaryReader _Reader;
         protected Int64 _Offset;
+        protected Int64 _Length;
         #endregion
 
         #region Properties
         /// <summary>
         /// The checksum of the packet.
+        /// Calculated from RecoverySetID + PacketType + packet body.
         /// </summary>
-        public byte[] Hash { get; private set; }
+        public byte[] Checksum { get; private set; }
 
         /// <summary>
         /// The ID of the recovery set.
@@ -135,7 +139,7 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Methods
-        protected abstract void Initialize(Stream input, long length);
+        protected abstract void Initialize();
         #endregion
     }
 }

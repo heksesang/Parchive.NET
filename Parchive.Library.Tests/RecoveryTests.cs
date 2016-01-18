@@ -24,9 +24,11 @@ namespace Parchive.Library.Tests
         [TestMethod]
         public void LoadRecoverySet()
         {
-            using (var fs = File.Open(@"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj.par2", FileMode.Open, FileAccess.Read))
+            RecoverySet set = null;
+
+            using (var fs = File.Open(@"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj.vol127+63.par2", FileMode.Open, FileAccess.Read))
             {
-                var set = new RecoverySet(new[] { fs });
+                set = new RecoverySet(new[] { fs });
             }
         }
     }
