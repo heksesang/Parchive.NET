@@ -95,12 +95,12 @@ namespace Parchive.Library.Math
         /// <summary>
         /// Subtraction operator
         /// </summary>
-        public static GF16 operator -(GF16 left, GF16 right)
+        public static GF16 operator-(GF16 left, GF16 right)
         {
             return (UInt16)(left.Value ^ right.Value);
         }
 
-        public static GF16 operator *(GF16 left, GF16 right)
+        public static GF16 operator*(GF16 left, GF16 right)
         {
             if (left.Value == 0 || right.Value == 0) return 0;
 
@@ -115,16 +115,34 @@ namespace Parchive.Library.Math
             }
         }
 
-        public static GF16 operator /(GF16 left, GF16 right)
+        public static GF16 operator/(GF16 left, GF16 right)
         {
             if (left.Value == 0) return 0;
             
-            if (right.Value == 0) { throw new DivideByZeroException(); } // Division by 0!
+            if (right.Value == 0) { throw new DivideByZeroException(); }
 
             Int32 sum = _Log[left.Value] - _Log[right.Value];
             if (sum < 0)
             {
                 return _AntiLog[sum + _Limit];
+            }
+            else
+            {
+                return _AntiLog[sum];
+            }
+        }
+
+        public static GF16 operator^(GF16 left, GF16 right)
+        {
+            if (left.Value == 0) return 1;
+            if (left.Value == 0) return 0;
+
+            UInt32 sum = (UInt32)_Log[left.Value] * (UInt32)right.Value;
+
+            sum = (sum >> 16) + (sum & _Limit);
+            if (sum >= _Limit)
+            {
+                return _AntiLog[sum - _Limit];
             }
             else
             {
