@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parchive.Library", "Parchive.Library\Parchive.Library.csproj", "{15B19628-F8B6-4BC4-A626-D536CD80B389}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parchive.Library.Tests", "Parchive.Library.Tests\Parchive.Library.Tests.csproj", "{942DAEC0-1100-4F1C-9124-E0E5CE9C4A75}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{15B19628-F8B6-4BC4-A626-D536CD80B389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15B19628-F8B6-4BC4-A626-D536CD80B389}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15B19628-F8B6-4BC4-A626-D536CD80B389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15B19628-F8B6-4BC4-A626-D536CD80B389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{942DAEC0-1100-4F1C-9124-E0E5CE9C4A75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{942DAEC0-1100-4F1C-9124-E0E5CE9C4A75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{942DAEC0-1100-4F1C-9124-E0E5CE9C4A75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{942DAEC0-1100-4F1C-9124-E0E5CE9C4A75}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
