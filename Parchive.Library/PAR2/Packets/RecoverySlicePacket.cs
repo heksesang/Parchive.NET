@@ -23,6 +23,11 @@ namespace Parchive.Library.PAR2.Packets
             _Reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
             return _Reader.ReadBytes((int)_Length - 4);
         }
+
+        public override bool ShouldVerifyOnInitialize()
+        {
+            return false;
+        }
         #endregion
 
         #region Packet Members

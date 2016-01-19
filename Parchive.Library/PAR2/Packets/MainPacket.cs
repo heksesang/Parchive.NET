@@ -61,7 +61,7 @@ namespace Parchive.Library.PAR2.Packets
         public List<byte[]> NonRecoveryFileIDs { get; set; } = new List<byte[]>();
         #endregion
 
-        #region Packet Members
+        #region Methods
         protected override void Initialize()
         {
             SliceSize = _Reader.ReadUInt64();
@@ -78,6 +78,11 @@ namespace Parchive.Library.PAR2.Packets
                 byte[] fileId = _Reader.ReadBytes(16);
                 NonRecoveryFileIDs.Add(fileId);
             }
+        }
+
+        public override bool ShouldVerifyOnInitialize()
+        {
+            return true;
         }
         #endregion
     }

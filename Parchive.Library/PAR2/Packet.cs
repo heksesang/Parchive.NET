@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -106,6 +107,13 @@ namespace Parchive.Library.PAR2
                 try
                 {
                     packet.Initialize();
+                    if (packet.ShouldVerifyOnInitialize())
+                    {
+                        if (!packet.Verify())
+                        {
+                            throw new InvalidPacketError("Verification failed.");
+                        }
+                    }
                 }
                 catch (NotImplementedException)
                 {
@@ -140,6 +148,36 @@ namespace Parchive.Library.PAR2
 
         #region Methods
         protected abstract void Initialize();
+
+        public abstract bool ShouldVerifyOnInitialize();
+
+        public bool Verify()
+        {
+            using (var crypt = MD5.Create())
+            {
+                crypt.TransformBlock(RecoverySetID, 0, RecoverySetID.Length, null, 0);
+
+                var attributes = (PacketAttribute[])this.GetType().GetCustomAttributes(typeof(PacketAttribute), false);
+                if (attributes.Length == 0)
+                {
+                    throw new VerificationError("PacketAttribute is required to verify a packet.");
+                }
+                var packetType = attributes[0].Type.Identifier;
+
+                crypt.TransformBlock(packetType, 0, packetType.Length, null, 0);
+
+                _Reader.BaseStream.Seek(_Offset, SeekOrigin.Begin);
+                var body = _Reader.ReadBytes((int)_Length);
+                crypt.TransformFinalBlock(body, 0, body.Length);
+
+                if (crypt.Hash.SequenceEqual(Checksum))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
         #endregion
     }
 }

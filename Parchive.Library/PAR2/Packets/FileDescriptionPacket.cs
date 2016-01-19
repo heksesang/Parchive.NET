@@ -42,7 +42,7 @@ namespace Parchive.Library.PAR2.Packets
         public string Filename { get; set; } = string.Empty;
         #endregion
 
-        #region Packet Members
+        #region Methods
         protected override void Initialize()
         {
             FileID = _Reader.ReadBytes(16);
@@ -58,6 +58,11 @@ namespace Parchive.Library.PAR2.Packets
             }
 
             Filename = sb.ToString();
+        }
+
+        public override bool ShouldVerifyOnInitialize()
+        {
+            return true;
         }
         #endregion
     }

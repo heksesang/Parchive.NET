@@ -43,7 +43,7 @@ namespace Parchive.Library.PAR2.Packets
         public List<InputFileSliceChecksum> Checksums = new List<InputFileSliceChecksum>();
         #endregion
 
-        #region Packet Members
+        #region Methods
         protected override void Initialize()
         {
             FileID = _Reader.ReadBytes(16);
@@ -56,7 +56,12 @@ namespace Parchive.Library.PAR2.Packets
 
                 Checksums.Add(checksum);
             }
-        } 
+        }
+
+        public override bool ShouldVerifyOnInitialize()
+        {
+            return true;
+        }
         #endregion
     }
 }
