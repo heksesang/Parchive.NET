@@ -80,7 +80,7 @@ namespace Parchive.Library.PAR2.Packets
             }
         }
 
-        public override bool ShouldVerifyOnInitialize()
+        protected override bool ShouldVerifyOnInitialize()
         {
             return true;
         }

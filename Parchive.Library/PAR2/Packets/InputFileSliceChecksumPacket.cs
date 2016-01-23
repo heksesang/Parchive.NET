@@ -35,7 +35,7 @@ namespace Parchive.Library.PAR2.Packets
         /// <summary>
         /// The File ID of the file.
         /// </summary>
-        public byte[] FileID { get; set; } = new byte[16];
+        public FileID FileID { get; set; } = new FileID();
 
         /// <summary>
         /// MD5 Hash and CRC32 pairs for the input file slices.
@@ -46,7 +46,7 @@ namespace Parchive.Library.PAR2.Packets
         #region Methods
         protected override void Initialize()
         {
-            FileID = _Reader.ReadBytes(16);
+            FileID = new FileID { ID = _Reader.ReadBytes(16) };
 
             while (_Reader.BaseStream.Position < _Offset + _Length)
             {
@@ -58,7 +58,7 @@ namespace Parchive.Library.PAR2.Packets
             }
         }
 
-        public override bool ShouldVerifyOnInitialize()
+        protected override bool ShouldVerifyOnInitialize()
         {
             return true;
         }

@@ -2,8 +2,11 @@
 using Parchive.Library.PAR2;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Parchive.Library.Tests
 {
@@ -23,6 +26,29 @@ namespace Parchive.Library.Tests
 
         [TestMethod]
         public void LoadRecoverySet()
+        {
+            string dir = @"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\";
+            RecoverySet rs = null;
+
+            foreach (var set in RecoveryFile.FromDirectory(dir))
+            {
+                var streams = set.Select(x => File.Open(dir + x.Filename, FileMode.Open, FileAccess.Read));
+
+                Debug.WriteLine(set.Key);
+                Debug.WriteLine("{");
+                foreach (var file in set)
+                {
+                    if (file.Exponents != null)
+                        Debug.WriteLine("\t" + file.Exponents.Minimum + "-" + file.Exponents.Maximum);
+                }
+                Debug.WriteLine("}");
+
+                rs = new RecoverySet(streams);
+            }
+        }
+
+        [TestMethod]
+        public void RepairFile()
         {
             RecoverySet set = null;
 

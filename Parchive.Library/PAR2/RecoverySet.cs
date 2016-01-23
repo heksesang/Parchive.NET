@@ -24,17 +24,20 @@ namespace Parchive.Library.PAR2
         /// <summary>
         /// The File Description packets of this recovery set.
         /// </summary>
-        private List<FileDescriptionPacket> _FileDescriptions = new List<FileDescriptionPacket>();
+        private Dictionary<FileID, FileDescriptionPacket> _FileDescriptions
+            = new Dictionary<FileID, FileDescriptionPacket>();
 
         /// <summary>
         /// The Input File Slice Checksum packets of this recovery set.
         /// </summary>
-        private List<InputFileSliceChecksumPacket> _InputFileSliceChecksums = new List<InputFileSliceChecksumPacket>();
+        private Dictionary<FileID, InputFileSliceChecksumPacket> _InputFileSliceChecksums
+            = new Dictionary<FileID, InputFileSliceChecksumPacket>();
 
         /// <summary>
         /// The Recovery Slice packets of this recovery set.
         /// </summary>
-        private List<RecoverySlicePacket> _RecoverySlices = new List<RecoverySlicePacket>();
+        private List<RecoverySlicePacket> _RecoverySlices
+            = new List<RecoverySlicePacket>();
         #endregion
 
         #region Constructors
@@ -63,21 +66,29 @@ namespace Parchive.Library.PAR2
                 {
                     if (packet != null)
                     {
-                        if (packet is MainPacket)
-                        {
-                            _Main = (MainPacket)packet;
-                        }
-                        else if (packet is FileDescriptionPacket)
-                        {
-                            _FileDescriptions.Add((FileDescriptionPacket)packet);
-                        }
-                        else if (packet is InputFileSliceChecksumPacket)
-                        {
-                            _InputFileSliceChecksums.Add((InputFileSliceChecksumPacket)packet);
-                        }
-                        else if (packet is RecoverySlicePacket)
+                        if (packet is RecoverySlicePacket)
                         {
                             _RecoverySlices.Add((RecoverySlicePacket)packet);
+                        }
+                        else if (packet.Verify())
+                        {
+                            if (packet is MainPacket)
+                            {
+                                if (_Main == null)
+                                    _Main = (MainPacket)packet;
+                            }
+                            else if (packet is FileDescriptionPacket)
+                            {
+                                var fd = (FileDescriptionPacket)packet;
+                                if (!_FileDescriptions.ContainsKey(fd.FileID))
+                                    _FileDescriptions[fd.FileID] = fd;
+                            }
+                            else if (packet is InputFileSliceChecksumPacket)
+                            {
+                                var ifsc = (InputFileSliceChecksumPacket)packet;
+                                if (!_InputFileSliceChecksums.ContainsKey(ifsc.FileID))
+                                    _InputFileSliceChecksums[ifsc.FileID] = ifsc;
+                            }
                         }
                     }
 
@@ -87,10 +98,10 @@ namespace Parchive.Library.PAR2
                     }
                     catch (UnsupportedPacketError)
                     {
-                        
+
                     }
                 }
-                while (packet != null);
+                while (input.Position < input.Length);
             }
         }
         #endregion
@@ -111,6 +122,16 @@ namespace Parchive.Library.PAR2
         /// </summary>
         /// <param name="filename">The filename of the file.</param>
         public void RemoveFile(string filename)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Repairs the input data with the available recovery slices.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public IEnumerable<Stream> Reconstruct(IEnumerable<Stream> input)
         {
             throw new NotImplementedException();
         }

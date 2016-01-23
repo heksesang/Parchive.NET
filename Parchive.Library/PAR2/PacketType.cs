@@ -46,7 +46,7 @@ namespace Parchive.Library.PAR2
         {
             if (left == null || right == null)
             {
-                return left == right;
+                return left != right;
             }
 
             return !left.Identifier.SequenceEqual(right.Identifier);

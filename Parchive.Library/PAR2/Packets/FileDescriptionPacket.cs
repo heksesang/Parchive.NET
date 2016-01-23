@@ -17,7 +17,7 @@ namespace Parchive.Library.PAR2.Packets
         /// <summary>
         /// The File ID is calculated as the MD5 Hash of the last 3 fields of the body of this packet.
         /// </summary>
-        public byte[] FileID { get; set; } = new byte[16];
+        public FileID FileID { get; set; } = new FileID();
 
         /// <summary>
         /// The MD5 hash of the entire file.
@@ -45,7 +45,7 @@ namespace Parchive.Library.PAR2.Packets
         #region Methods
         protected override void Initialize()
         {
-            FileID = _Reader.ReadBytes(16);
+            FileID = new FileID { ID = _Reader.ReadBytes(16) };
             Hash = _Reader.ReadBytes(16);
             Hash16k = _Reader.ReadBytes(16);
             Length = _Reader.ReadUInt64();
@@ -60,7 +60,7 @@ namespace Parchive.Library.PAR2.Packets
             Filename = sb.ToString();
         }
 
-        public override bool ShouldVerifyOnInitialize()
+        protected override bool ShouldVerifyOnInitialize()
         {
             return true;
         }

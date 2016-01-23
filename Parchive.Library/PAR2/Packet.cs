@@ -149,7 +149,7 @@ namespace Parchive.Library.PAR2
         #region Methods
         protected abstract void Initialize();
 
-        public abstract bool ShouldVerifyOnInitialize();
+        protected abstract bool ShouldVerifyOnInitialize();
 
         public bool Verify()
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parchive.Library.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,20 +21,24 @@ namespace Parchive.Library.PAR2.Packets
         #region Methods
         public byte[] GetRecoveryData()
         {
+            // Verify the packet data, so we don't use invalid data for recovery.
+            if (!Verify())
+            {
+                throw new InvalidPacketError("Verification failed.");
+            }
+
             _Reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
             return _Reader.ReadBytes((int)_Length - 4);
         }
 
-        public override bool ShouldVerifyOnInitialize()
-        {
-            return false;
-        }
-        #endregion
-
-        #region Packet Members
         protected override void Initialize()
         {
             Exponent = _Reader.ReadUInt32();
+        }
+
+        protected override bool ShouldVerifyOnInitialize()
+        {
+            return false;
         }
         #endregion
     }
