@@ -15,10 +15,7 @@ module Recovery =
                     yield (table.Mul x (table.Pow c exp))
         }
 
-        let mutable sum = 0;
-        for value in values do
-            sum <- table.Add sum value;
-        sum
+        Seq.reduce (fun acc x -> table.Add acc x) values
 
     /// Restores data from `slices`
     let restoreData (slices : seq<int * int * int>) =
@@ -51,5 +48,5 @@ module Recovery =
 
         Seq.toArray (seq {
             for s in coefficients.GetInverse() * results do
-                yield s
+                yield s |> int
         })

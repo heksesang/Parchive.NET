@@ -55,7 +55,7 @@ namespace Parchive.Library.Tests
             var values = new List<Tuple<int, int>>();
             var exp = new List<int>();
 
-            for (int i = 1, e = 1; i <= 10; i++)
+            for (int i = 1, e = 1; i <= 4096; i++)
             {
                 var constant = table.Pow(2, e);
                 values.Add(Tuple.Create(i, constant));
