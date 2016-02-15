@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Parchive.Library.PAR2;
+using Parchive.Library.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace Parchive.Library.Tests
 {
@@ -14,47 +16,52 @@ namespace Parchive.Library.Tests
     public class RecoveryTests
     {
         [TestMethod]
-        public void CreateRecoverySet()
+        public void LoadRecoverySet()
         {
-            RecoverySet set = new RecoverySet(4194304, "Parchive.NET");
+            string dir = @"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\";
             
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes("test")))
+            using (var rs = RecoverySet.Open(RecoveryFile.FromDirectory(dir).FirstOrDefault()))
             {
-                set.AddFile("test.txt", stream);
             }
         }
 
         [TestMethod]
-        public void LoadRecoverySet()
+        public void VerifySourceFiles()
         {
             string dir = @"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\";
-            RecoverySet rs = null;
 
-            foreach (var set in RecoveryFile.FromDirectory(dir))
+            using (var rs = RecoverySet.Open(RecoveryFile.FromDirectory(dir).FirstOrDefault()))
             {
-                var streams = set.Select(x => File.Open(dir + x.Filename, FileMode.Open, FileAccess.Read));
+                ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-                Debug.WriteLine(set.Key);
-                Debug.WriteLine("{");
-                foreach (var file in set)
+                rs.VerificationCompleted += (sender, e) => resetEvent.Set();
+
+                rs.Verify();
+
+                if (!resetEvent.WaitOne(10000))
                 {
-                    if (file.Exponents != null)
-                        Debug.WriteLine("\t" + file.Exponents.Minimum + "-" + file.Exponents.Maximum);
+                    Assert.Fail();
                 }
-                Debug.WriteLine("}");
-
-                rs = new RecoverySet(streams);
             }
         }
 
         [TestMethod]
         public void RepairFile()
         {
-            RecoverySet set = null;
-
-            using (var fs = File.Open(@"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj.vol127+63.par2", FileMode.Open, FileAccess.Read))
+            string dir = @"E:\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj\";
+            
+            using (var rs = RecoverySet.Open(RecoveryFile.FromDirectory(dir).FirstOrDefault()))
             {
-                set = new RecoverySet(new[] { fs });
+                ManualResetEvent resetEvent = new ManualResetEvent(false);
+
+                rs.VerificationCompleted += (sender, e) => resetEvent.Set();
+
+                rs.Verify();
+
+                if (!resetEvent.WaitOne(10000))
+                {
+                    Assert.Fail();
+                }
             }
         }
     }

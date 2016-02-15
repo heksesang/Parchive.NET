@@ -32,6 +32,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,9 +45,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnonymousComparer.cs" />
+    <Compile Include="ArrayExtensions.cs" />
+    <Compile Include="Exceptions\InitializationError.cs" />
     <Compile Include="Exceptions\InvalidPacketError.cs" />
+    <Compile Include="Exceptions\PathError.cs" />
+    <Compile Include="Exceptions\InvalidSliceSizeError.cs" />
+    <Compile Include="Exceptions\TooLargeNumberError.cs" />
     <Compile Include="Exceptions\UnsupportedPacketError.cs" />
     <Compile Include="Exceptions\VerificationError.cs" />
+    <Compile Include="FileInfoExtensions.cs" />
+    <Compile Include="Math\Matrix.cs" />
     <Compile Include="PAR2\FileID.cs" />
     <Compile Include="PAR2\PacketAttribute.cs" />
     <Compile Include="Math\GF16.cs" />
@@ -53,7 +65,12 @@
     <Compile Include="PAR2\Packets\MainPacket.cs" />
     <Compile Include="PAR2\Packets\RecoverySlicePacket.cs" />
     <Compile Include="PAR2\PacketType.cs" />
-    <Compile Include="PAR2\Range.cs" />
+    <Compile Include="PAR2\SourceFile.cs" />
+    <Compile Include="Tasks\TaskCompletedEventArgs.cs" />
+    <Compile Include="Tasks\TaskGroup.cs" />
+    <Compile Include="Tasks\TaskGroupFinishedEventArgs.cs" />
+    <Compile Include="Tasks\TaskProgressEventArgs.cs" />
+    <Compile Include="Range.cs" />
     <Compile Include="PAR2\RecoveryFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PAR2\RecoverySet.cs" />
@@ -61,6 +78,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

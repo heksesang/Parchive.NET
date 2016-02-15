@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Parchive.Library.Exceptions
 {
-    public class VerificationError : Exception
+    public class PathError : Exception
     {
         #region Constructors
-        public VerificationError(string message) : base(message) { }
-        public VerificationError() { }
+        public PathError(string message) : base(message) { }
+        public PathError() { } 
         #endregion
     }
 }

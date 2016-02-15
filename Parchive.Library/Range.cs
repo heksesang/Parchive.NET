@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Parchive.Library.PAR2
+namespace Parchive.Library
 {
+    /// <summary>
+    /// Original source: http://stackoverflow.com/a/5343033
+    /// </summary>
     public class Range<T> where T : IComparable<T>
     {
         /// <summary>

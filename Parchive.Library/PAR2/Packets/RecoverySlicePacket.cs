@@ -12,33 +12,24 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 recovery slice packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x63696C5376636552)]
-    public class RecoverySlicePacket : Packet
+    internal class RecoverySlicePacket : Packet
     {
         #region Properties
-        public UInt32 Exponent { get; set; }
+        public uint Exponent { get; set; }
+        public byte[] RecoverySlice { get; set; }
         #endregion
 
         #region Methods
-        public byte[] GetRecoveryData()
+        /// <summary>
+        /// Initializes the packet from a stream.
+        /// </summary>
+        /// <param name="reader">The reader that provides access to the stream.</param>
+        protected override void Initialize(BinaryReader reader)
         {
-            // Verify the packet data, so we don't use invalid data for recovery.
-            if (!Verify())
-            {
-                throw new InvalidPacketError("Verification failed.");
-            }
+            Exponent = reader.ReadUInt32();
 
-            _Reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
-            return _Reader.ReadBytes((int)_Length - 4);
-        }
-
-        protected override void Initialize()
-        {
-            Exponent = _Reader.ReadUInt32();
-        }
-
-        protected override bool ShouldVerifyOnInitialize()
-        {
-            return false;
+            reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
+            RecoverySlice = reader.ReadBytes((int)_Length - 4);
         }
         #endregion
     }

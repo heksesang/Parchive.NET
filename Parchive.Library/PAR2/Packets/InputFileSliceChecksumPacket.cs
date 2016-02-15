@@ -21,7 +21,7 @@ namespace Parchive.Library.PAR2.Packets
         /// <summary>
         /// The CRC32 checksum of the slice.
         /// </summary>
-        public UInt32 CRC32;
+        public uint CRC32;
         #endregion
     }
 
@@ -29,7 +29,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 input file slice checksum packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x0000000043534649)]
-    public class InputFileSliceChecksumPacket : Packet
+    internal class InputFileSliceChecksumPacket : Packet
     {
         #region Properties
         /// <summary>
@@ -44,23 +44,22 @@ namespace Parchive.Library.PAR2.Packets
         #endregion
 
         #region Methods
-        protected override void Initialize()
+        /// <summary>
+        /// Initializes the packet from a stream.
+        /// </summary>
+        /// <param name="reader">The reader that provides access to the stream.</param>
+        protected override void Initialize(BinaryReader reader)
         {
-            FileID = new FileID { ID = _Reader.ReadBytes(16) };
+            FileID = new FileID { ID = reader.ReadBytes(16) };
 
-            while (_Reader.BaseStream.Position < _Offset + _Length)
+            while (reader.BaseStream.Position < _Offset + _Length)
             {
                 InputFileSliceChecksum checksum = new InputFileSliceChecksum();
-                checksum.MD5 = _Reader.ReadBytes(16);
-                checksum.CRC32 = _Reader.ReadUInt32();
+                checksum.MD5 = reader.ReadBytes(16);
+                checksum.CRC32 = reader.ReadUInt32();
 
                 Checksums.Add(checksum);
             }
-        }
-
-        protected override bool ShouldVerifyOnInitialize()
-        {
-            return true;
         }
         #endregion
     }

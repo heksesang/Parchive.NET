@@ -17,12 +17,18 @@ namespace Parchive.Library.PAR2
     {
         #region Constants
         /// <summary>
-        /// Magic sequence. Used to quickly identify location of packets.
+        /// The PAR2 packet signature. Each packet starts with this signature.
         /// </summary>
-        public const UInt64 Signature = 6074036484213719376; // { 'P', 'A', 'R', '2', '\0', 'P', 'K', 'T' };
+        public const long Signature = 6074036484213719376; // { 'P', 'A', 'R', '2', '\0', 'P', 'K', 'T' };
         #endregion
 
         #region Static Initialization
+        /// <summary>
+        /// Static constructor which registers any classes in the assembly which are tagged with PacketAttribute.
+        /// </summary>
+        /// <exception cref="Parchive.Library.Exceptions.InitializationError">
+        /// There exists multiple PacketAttributes with the same PacketType value.
+        /// </exception>
         static Packet()
         {
             var types = typeof(Packet).Assembly.GetTypes();
@@ -37,7 +43,7 @@ namespace Parchive.Library.PAR2
 
                     if (_SupportedPackets.ContainsKey(packetType))
                     {
-                        throw new Exception("Packet type already registered.");
+                        throw new InitializationError("Packet type already registered.");
                     }
 
                     _SupportedPackets[packetType] = type;
@@ -59,31 +65,46 @@ namespace Parchive.Library.PAR2
                 return _SupportedPackets;
             }
         }
-
+        
         /// <summary>
-        /// Loads a packet from a stream.
+        /// Reads a PAR2 packet from an input stream.
         /// </summary>
         /// <param name="input">The input stream.</param>
-        /// <returns>The packet.</returns>
+        /// <returns>A PAR2 packet.</returns>
+        /// <exception cref="Parchive.Library.Exceptions.InvalidPacketError">
+        /// The data in the stream is not a valid PAR2 packet.
+        /// </exception>
+        /// <exception cref="Parchive.Library.Exceptions.UnsupportedPacketError">
+        /// The packet type is not supported by this library.
+        /// </exception>
+        /// <exception cref="Parchive.Library.Exceptions.TooLargeNumberError">
+        /// The length of the packet is too large.
+        /// </exception>
         public static Packet FromStream(Stream input)
         {
             Packet packet = null;
 
             if (input.Position < input.Length)
             {
-                var br = new BinaryReader(input, Encoding.UTF8, true);
+                var reader = new BinaryReader(input, Encoding.UTF8, true);
 
-                if (br.ReadUInt64() != Signature)
+                if (reader.ReadInt64() != Signature)
                 {
-                    throw new Exception("Invalid PAR2 header signature.");
+                    throw new InvalidPacketError("Invalid PAR2 header signature.");
                 }
 
-                var length = br.ReadInt64() - 64;
-                var hash = br.ReadBytes(16);
-                var recoverySetID = br.ReadBytes(16);
-                var packetType = new PacketType(br.ReadBytes(16));
+                var length = reader.ReadInt64() - 64;
+                
+                if (length < 0)
+                {
+                    throw new TooLargeNumberError();
+                }
 
-                if (length < 0 || (length % 4) != 0)
+                var hash = reader.ReadBytes(16);
+                var recoverySetID = reader.ReadBytes(16);
+                var packetType = new PacketType(reader.ReadBytes(16));
+
+                if ((length % 4) != 0)
                 {
                     throw new InvalidPacketError("Invalid packet length.");
                 }
@@ -96,28 +117,18 @@ namespace Parchive.Library.PAR2
                 }
 
                 packet = Activator.CreateInstance(t) as Packet;
-
-                packet._Reader = br;
-                packet._Offset = br.BaseStream.Position;
+                
+                packet._Offset = reader.BaseStream.Position;
                 packet._Length = length;
 
                 packet.Checksum = hash;
                 packet.RecoverySetID = recoverySetID;
+                
+                packet.Initialize(reader);
 
-                try
+                if (!packet.Verify(reader))
                 {
-                    packet.Initialize();
-                    if (packet.ShouldVerifyOnInitialize())
-                    {
-                        if (!packet.Verify())
-                        {
-                            throw new InvalidPacketError("Verification failed.");
-                        }
-                    }
-                }
-                catch (NotImplementedException)
-                {
-                    Debug.WriteLine(packet.GetType().Name + " isn't implemented.");
+                    throw new InvalidPacketError("Verification failed.");
                 }
 
                 input.Seek(packet._Offset + packet._Length, SeekOrigin.Begin);
@@ -128,9 +139,8 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Fields
-        protected BinaryReader _Reader;
-        protected Int64 _Offset;
-        protected Int64 _Length;
+        protected long _Offset;
+        protected long _Length;
         #endregion
 
         #region Properties
@@ -147,11 +157,19 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Methods
-        protected abstract void Initialize();
+        /// <summary>
+        /// Initializes the packet from a stream.
+        /// </summary>
+        /// <param name="reader">The reader that provides access to the stream.</param>
+        protected abstract void Initialize(BinaryReader reader);
 
-        protected abstract bool ShouldVerifyOnInitialize();
-
-        public bool Verify()
+        /// <summary>
+        /// Verifies the integrity of the packet by calculating the checksum of
+        /// the RecoverySetID, PacketType, and the remaining data from a stream.
+        /// </summary>
+        /// <param name="reader">The reader that provides access to the stream.</param>
+        /// <returns>true if the integrity of the packet is intact; otherwise, false.</returns>
+        public bool Verify(BinaryReader reader)
         {
             using (var crypt = MD5.Create())
             {
@@ -166,8 +184,8 @@ namespace Parchive.Library.PAR2
 
                 crypt.TransformBlock(packetType, 0, packetType.Length, null, 0);
 
-                _Reader.BaseStream.Seek(_Offset, SeekOrigin.Begin);
-                var body = _Reader.ReadBytes((int)_Length);
+                reader.BaseStream.Seek(_Offset, SeekOrigin.Begin);
+                var body = reader.ReadBytes((int)_Length);
                 crypt.TransformFinalBlock(body, 0, body.Length);
 
                 if (crypt.Hash.SequenceEqual(Checksum))

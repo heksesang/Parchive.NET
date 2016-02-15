@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Parchive.Library.Exceptions
 {
-    public class VerificationError : Exception
+    public class TooLargeNumberError : Exception
     {
         #region Constructors
-        public VerificationError(string message) : base(message) { }
-        public VerificationError() { }
+        public TooLargeNumberError(string message) : base(message) { }
+        public TooLargeNumberError() { }
         #endregion
     }
 }

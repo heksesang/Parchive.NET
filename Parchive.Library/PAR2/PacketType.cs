@@ -22,7 +22,7 @@ namespace Parchive.Library.PAR2
             Identifier = identifier;
         }
 
-        public PacketType(UInt64 a, UInt64 b)
+        public PacketType(long a, long b)
         {
             Identifier = new byte[16];
 

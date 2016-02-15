@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parchive.Library.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 file description packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x63736544656C6946)]
-    public class FileDescriptionPacket : Packet
+    internal class FileDescriptionPacket : Packet
     {
         #region Properties
         /// <summary>
@@ -32,7 +33,7 @@ namespace Parchive.Library.PAR2.Packets
         /// <summary>
         /// The length of the entire file.
         /// </summary>
-        public UInt64 Length { get; set; } = 0;
+        public long Length { get; set; } = 0;
 
         /// <summary>
         /// Name of the file.
@@ -43,26 +44,32 @@ namespace Parchive.Library.PAR2.Packets
         #endregion
 
         #region Methods
-        protected override void Initialize()
+        /// <summary>
+        /// Initializes the packet from a stream.
+        /// </summary>
+        /// <param name="reader">The reader that provides access to the stream.</param>
+        /// <exception cref="Parchive.Library.Exceptions.TooLargeNumberError">
+        /// The length of the file is too large.
+        /// </exception>
+        protected override void Initialize(BinaryReader reader)
         {
-            FileID = new FileID { ID = _Reader.ReadBytes(16) };
-            Hash = _Reader.ReadBytes(16);
-            Hash16k = _Reader.ReadBytes(16);
-            Length = _Reader.ReadUInt64();
+            FileID = new FileID { ID = reader.ReadBytes(16) };
+            Hash = reader.ReadBytes(16);
+            Hash16k = reader.ReadBytes(16);
+
+            if ((Length = reader.ReadInt64()) < 0)
+            {
+                throw new TooLargeNumberError();
+            }
 
             StringBuilder sb = new StringBuilder();
 
-            while (_Reader.BaseStream.Position < _Offset + _Length)
+            while (reader.BaseStream.Position < _Offset + _Length)
             {
-                sb.Append(_Reader.ReadChars(4));
+                sb.Append(reader.ReadChars(4));
             }
 
             Filename = sb.ToString();
-        }
-
-        protected override bool ShouldVerifyOnInitialize()
-        {
-            return true;
         }
         #endregion
     }

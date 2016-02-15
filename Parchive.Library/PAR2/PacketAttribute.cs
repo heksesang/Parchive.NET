@@ -18,7 +18,7 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Constructors
-        public PacketAttribute(UInt64 a, UInt64 b)
+        public PacketAttribute(long a, long b)
         {
             _Type = new PacketType(a, b);
         }

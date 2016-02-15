@@ -8,13 +8,25 @@ using System.Threading.Tasks;
 
 namespace Parchive.Library.PAR2
 {
+    /// <summary>
+    /// A PAR2 file.
+    /// </summary>
     public struct RecoveryFile
     {
         #region Properties
+        /// <summary>
+        /// The path of the file.
+        /// </summary>
         public string Filename { get; set; }
         
+        /// <summary>
+        /// The set name. This is the base filename of the file.
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// The exponents that are present in this file.
+        /// </summary>
         public Range<long> Exponents { get; set; }
         #endregion
 
@@ -23,9 +35,16 @@ namespace Parchive.Library.PAR2
         #endregion
 
         #region Static Methods
+        /// <summary>
+        /// Creates a RecoveryFile object from a PAR2 file.
+        /// </summary>
+        /// <param name="filename">The path of the PAR2 file.</param>
+        /// <returns>A RecoveryFile object containing information from the PAR2 file.</returns>
         public static RecoveryFile FromFilename(string filename)
         {
-            var m = Regex.Match(filename, _Regex);
+            var fi = new FileInfo(filename);
+
+            var m = Regex.Match(fi.Name, _Regex);
 
             long start;
             long count;
@@ -43,12 +62,17 @@ namespace Parchive.Library.PAR2
 
             return new RecoveryFile
             {
-                Filename = filename,
+                Filename = fi.FullName,
                 Name = m.Groups[1].Value,
                 Exponents = range
             };
         }
 
+        /// <summary>
+        /// Creates RecoveryFile objects from all the PAR2 files in a directory.
+        /// </summary>
+        /// <param name="directory">The directory to search.</param>
+        /// <returns>A collection of RecoveryFile objects, grouped by set name.</returns>
         public static IEnumerable<IGrouping<string, RecoveryFile>> FromDirectory(string directory)
         {
             var recoveryFiles = new List<RecoveryFile>();
@@ -59,7 +83,7 @@ namespace Parchive.Library.PAR2
 
                 if (fi.Extension == ".par2")
                 {
-                    recoveryFiles.Add(RecoveryFile.FromFilename(fi.Name));
+                    recoveryFiles.Add(RecoveryFile.FromFilename(fi.FullName));
                 }
             }
 
