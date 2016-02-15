@@ -55,7 +55,6 @@
     <Compile Include="Exceptions\UnsupportedPacketError.cs" />
     <Compile Include="Exceptions\VerificationError.cs" />
     <Compile Include="FileInfoExtensions.cs" />
-    <Compile Include="Math\Matrix.cs" />
     <Compile Include="PAR2\FileID.cs" />
     <Compile Include="PAR2\PacketAttribute.cs" />
     <Compile Include="Math\GF16.cs" />
