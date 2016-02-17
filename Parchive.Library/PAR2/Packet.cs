@@ -136,6 +136,16 @@ namespace Parchive.Library.PAR2
 
             return packet;
         }
+
+        /// <summary>
+        /// Gets the packet type object for a packet type.
+        /// </summary>
+        /// <typeparam name="TPacket">The packet type to get the object for.</typeparam>
+        /// <returns>The packet type object.</returns>
+        public static PacketType GetPacketType<TPacket>()
+        {
+            return _SupportedPackets.Where(x => x.Value == typeof(TPacket)).Select(x => x.Key).FirstOrDefault();
+        }
         #endregion
 
         #region Fields

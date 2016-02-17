@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Parchive.Library
 {
     /// <summary>
-    /// Original source: http://stackoverflow.com/a/5343033
+    /// A range of elements of an IComparable type.
     /// </summary>
     public class Range<T> where T : IComparable<T>
     {

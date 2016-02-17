@@ -159,7 +159,7 @@ namespace Parchive.Library.PAR2
         /// <exception cref="Parchive.Library.Exceptions.InvalidSliceSizeError">
         /// The slice size is less than zero or isn't a multiple of 4.
         /// </exception>
-        public static RecoverySet Initialize(long sliceSize, string creator = "parchive.net")
+        public static RecoverySet Initialize(long sliceSize, string creator = "")
         {
             return new RecoverySet
             {
@@ -381,7 +381,7 @@ namespace Parchive.Library.PAR2
         /// Reconstruct files.
         /// </summary>
         /// <param name="inputs"></param>
-        protected void Reconstruct(IEnumerable<KeyValuePair<FileID, Stream>> inputs)
+        protected void Reconstruct()
         {
             if (_Main.SliceSize > int.MaxValue)
             {
@@ -392,7 +392,7 @@ namespace Parchive.Library.PAR2
             
             var buffer = new byte[_Main.SliceSize];
 
-            foreach (var input in inputs)
+            foreach (var input in _FileStreams)
             {
                 // Get the slice checksums for this file.
                 var slices = _InputFileSliceChecksums.FirstOrDefault(x => x.Key == input.Key);

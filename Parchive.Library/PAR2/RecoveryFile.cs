@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Parchive.Library.PAR2
 {
     /// <summary>
-    /// A PAR2 file.
+    /// PAR2 file metadata.
     /// </summary>
     public struct RecoveryFile
     {
@@ -66,28 +66,6 @@ namespace Parchive.Library.PAR2
                 Name = m.Groups[1].Value,
                 Exponents = range
             };
-        }
-
-        /// <summary>
-        /// Creates RecoveryFile objects from all the PAR2 files in a directory.
-        /// </summary>
-        /// <param name="directory">The directory to search.</param>
-        /// <returns>A collection of RecoveryFile objects, grouped by set name.</returns>
-        public static IEnumerable<IGrouping<string, RecoveryFile>> FromDirectory(string directory)
-        {
-            var recoveryFiles = new List<RecoveryFile>();
-
-            foreach (var file in Directory.EnumerateFiles(directory))
-            {
-                var fi = new FileInfo(file);
-
-                if (fi.Extension == ".par2")
-                {
-                    recoveryFiles.Add(RecoveryFile.FromFilename(fi.FullName));
-                }
-            }
-
-            return recoveryFiles.GroupBy(x => x.Name);
         }
         #endregion
     }

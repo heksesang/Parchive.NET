@@ -45,17 +45,10 @@ namespace Parchive.Library.Tests
         [TestMethod]
         public void Restore()
         {
-            //var values = new Tuple<int, int>[]
-            //{
-            //    Tuple.Create(5, 2),
-            //    Tuple.Create(6, 4)
-            //};
-            //var exp = new int[] { 1, 2 };
-
             var values = new List<Tuple<int, int>>();
             var exp = new List<int>();
 
-            for (int i = 1, e = 1; i <= 4096; i++)
+            for (int i = 1, e = 1; i <= 3; i++)
             {
                 var constant = table.Pow(2, e);
                 values.Add(Tuple.Create(i, constant));
