@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Parchive.Library.PAR2;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,13 +7,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Parchive.Library.PAR2
+namespace Parchive.Library.IO
 {
-    public class RecoveryFileReader : BinaryReader
+    public class ParReader : BinaryReader
     {
         private IDictionary<long, PacketType> _Packets = new Dictionary<long, PacketType>();
 
-        public RecoveryFileReader(Stream input) : base(input)
+        public ParReader(Stream input) : base(input)
         {
             var origin = BaseStream.Position;
 
@@ -56,11 +57,11 @@ namespace Parchive.Library.PAR2
             BaseStream.Seek(origin, SeekOrigin.Begin);
         }
 
-        public RecoveryFileReader(Stream input, Encoding encoding) : base(input, encoding)
+        public ParReader(Stream input, Encoding encoding) : base(input, encoding)
         {
         }
 
-        public RecoveryFileReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
+        public ParReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
         {
         }
 

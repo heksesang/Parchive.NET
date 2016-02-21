@@ -11,6 +11,8 @@
     <AssemblyName>Parchive.Library</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,6 +39,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives, Version=4.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,10 +64,12 @@
     <Compile Include="Exceptions\InvalidSliceSizeError.cs" />
     <Compile Include="Exceptions\TooLargeNumberError.cs" />
     <Compile Include="Exceptions\UnsupportedPacketError.cs" />
+    <Compile Include="Exceptions\UnsupportedSchemeError.cs" />
     <Compile Include="Exceptions\VerificationError.cs" />
     <Compile Include="FileInfoExtensions.cs" />
+    <Compile Include="IImmutableCollectionExtensions.cs" />
+    <Compile Include="IO\StreamBuilder.cs" />
     <Compile Include="PAR2\FileID.cs" />
-    <Compile Include="PAR2\IRecoveryFileLocator.cs" />
     <Compile Include="PAR2\PacketAttribute.cs" />
     <Compile Include="PAR2\Packet.cs" />
     <Compile Include="PAR2\Packets\FileDescriptionPacket.cs" />
@@ -64,15 +77,15 @@
     <Compile Include="PAR2\Packets\MainPacket.cs" />
     <Compile Include="PAR2\Packets\RecoverySlicePacket.cs" />
     <Compile Include="PAR2\PacketType.cs" />
-    <Compile Include="PAR2\RecoveryFileReader.cs" />
-    <Compile Include="PAR2\SourceFile.cs" />
-    <Compile Include="PAR2\ISourceFileLocator.cs" />
+    <Compile Include="IO\IProtocolHandler.cs" />
+    <Compile Include="IO\ParReader.cs" />
+    <Compile Include="IO\SourceFile.cs" />
     <Compile Include="Tasks\TaskCompletedEventArgs.cs" />
     <Compile Include="Tasks\TaskGroup.cs" />
     <Compile Include="Tasks\TaskGroupFinishedEventArgs.cs" />
     <Compile Include="Tasks\TaskProgressEventArgs.cs" />
     <Compile Include="Range.cs" />
-    <Compile Include="PAR2\RecoveryFile.cs" />
+    <Compile Include="IO\RecoveryFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PAR2\RecoverySet.cs" />
   </ItemGroup>
@@ -81,6 +94,11 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

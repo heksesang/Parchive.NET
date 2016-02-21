@@ -62,5 +62,32 @@ namespace Parchive.Library
         {
             return this.IsValid() && Range.IsValid() && this.ContainsValue(Range.Minimum) && this.ContainsValue(Range.Maximum);
         }
+
+        /// <summary>
+        /// Determines whether the specified object is equal to the current object.
+        /// </summary>
+        /// <param name="obj">The object to compare with the current object.</param>
+        /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj is Range<T>)
+            {
+                var range = (Range<T>)obj;
+
+                if (range.Minimum.CompareTo(Minimum) == 0 && range.Maximum.CompareTo(range.Maximum) == 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>A hash code for the current object.</returns>
+        public override int GetHashCode()
+        {
+            return Minimum.GetHashCode() + Maximum.GetHashCode();
+        }
     }
 }

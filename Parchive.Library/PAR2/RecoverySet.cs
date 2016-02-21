@@ -1,4 +1,5 @@
 ﻿using Parchive.Library.Exceptions;
+using Parchive.Library.IO;
 using Parchive.Library.PAR2.Packets;
 using Parchive.Library.Tasks;
 using System;
@@ -71,7 +72,7 @@ namespace Parchive.Library.PAR2
             get
             {
                 return _ParFiles.Select(x =>
-                    new FileInfo(x.Filename).DirectoryName).FirstOrDefault();
+                    new FileInfo(x.Location.AbsolutePath).DirectoryName).FirstOrDefault();
             }
         }
 
@@ -241,7 +242,7 @@ namespace Parchive.Library.PAR2
         /// </exception>
         protected void LoadParFile(RecoveryFile parFile)
         {
-            var f = File.Open(parFile.Filename, FileMode.Open, FileAccess.Read);
+            var f = File.Open(parFile.Location.AbsolutePath, FileMode.Open, FileAccess.Read);
 
             Packet packet = null;
 
