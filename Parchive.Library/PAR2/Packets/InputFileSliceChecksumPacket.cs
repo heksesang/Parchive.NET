@@ -29,7 +29,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 input file slice checksum packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x0000000043534649)]
-    internal class InputFileSliceChecksumPacket : Packet
+    public class InputFileSliceChecksumPacket : Packet
     {
         #region Properties
         /// <summary>
@@ -60,6 +60,15 @@ namespace Parchive.Library.PAR2.Packets
 
                 Checksums.Add(checksum);
             }
+        }
+
+        /// <summary>
+        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
+        /// </summary>
+        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
+        protected override void Write(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

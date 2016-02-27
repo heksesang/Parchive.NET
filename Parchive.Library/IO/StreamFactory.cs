@@ -9,16 +9,22 @@ using System.Threading.Tasks;
 namespace Parchive.Library.IO
 {
     /// <summary>
-    /// 
+    /// Provides methods for building <see cref="Stream"/> objects.
     /// </summary>
-    public static class StreamBuilder
+    public static class StreamFactory
     {
+        /// <summary>
+        /// Available protocol handlers.
+        /// </summary>
         private static readonly Dictionary<string, IProtocolHandler> _Handlers;
 
-        static StreamBuilder()
+        /// <summary>
+        /// Registers the available protocol handlers.
+        /// </summary>
+        static StreamFactory()
         {
             var types = typeof(IProtocolHandler).Assembly.GetTypes()
-                .Where(x => typeof(IProtocolHandler).IsAssignableFrom(x));
+                .Where(x => x.IsClass && !x.IsAbstract && typeof(IProtocolHandler).IsAssignableFrom(x));
 
             _Handlers = types
                 .Select(x => Activator.CreateInstance(x) as IProtocolHandler)
@@ -26,10 +32,10 @@ namespace Parchive.Library.IO
         }
 
         /// <summary>
-        /// Gets the content.
+        /// Gets a resource.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public static Stream GetContent(Uri uri)
         {
             if (!_Handlers.ContainsKey(uri.Scheme))
@@ -41,10 +47,10 @@ namespace Parchive.Library.IO
         }
 
         /// <summary>
-        /// Gets the content as an asynchronous operation.
+        /// Gets a resource as an asynchronous operation.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public static async Task<Stream> GetContentAsync(Uri uri)
         {
             if (!_Handlers.ContainsKey(uri.Scheme))

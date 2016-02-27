@@ -1,6 +1,7 @@
 ﻿using Parchive.Library.PAR2;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -9,13 +10,33 @@ using System.Threading.Tasks;
 
 namespace Parchive.Library.IO
 {
+    /// <summary>
+    /// Reads PAR2 packets.
+    /// </summary>
     public class ParReader : BinaryReader
     {
-        private IDictionary<long, PacketType> _Packets = new Dictionary<long, PacketType>();
+        #region Fields
+        private IImmutableDictionary<long, PacketType> _Packets = ImmutableDictionary<long, PacketType>.Empty;
+        #endregion
 
-        public ParReader(Stream input) : base(input)
+        #region Constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParReader"/> class based on the specified stream and using ASCII encoding.
+        /// </summary>
+        /// <param name="input">The input stream.</param>
+        public ParReader(Stream input) : this(input, false)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParReader"/> class based on the specified stream and using ASCII encoding, and optionally leaves the stream open.
+        /// </summary>
+        /// <param name="input">The input stream.</param>
+        /// <param name="leaveOpen">true to leave the stream open after the <see cref="ParReader"/> object is disposed; otherwise, false.</param>
+        public ParReader(Stream input, bool leaveOpen) : base(input, Encoding.ASCII, leaveOpen)
         {
             var origin = BaseStream.Position;
+            BaseStream.Seek(0, SeekOrigin.Begin);
 
             while (BaseStream.Position < BaseStream.Length)
             {
@@ -34,7 +55,7 @@ namespace Parchive.Library.IO
                         if (Encoding.UTF8.GetString(buffer) == "PAR2\0PKT")
                         {
                             var pos = BaseStream.Position - 8;
-                            var ok = Verify(BaseStream);
+                            var ok = Verify();
                             var end = BaseStream.Position;
 
                             if (ok)
@@ -42,7 +63,7 @@ namespace Parchive.Library.IO
                                 BaseStream.Seek(pos + 48, SeekOrigin.Begin);
                                 var type = this.ReadBytes(16);
                                 BaseStream.Seek(end, SeekOrigin.Begin);
-                                _Packets[pos] = new PacketType(type);
+                                _Packets = _Packets.Add(pos, new PacketType(type));
                             }
                             else
                             {
@@ -56,16 +77,14 @@ namespace Parchive.Library.IO
 
             BaseStream.Seek(origin, SeekOrigin.Begin);
         }
+        #endregion
 
-        public ParReader(Stream input, Encoding encoding) : base(input, encoding)
-        {
-        }
-
-        public ParReader(Stream input, Encoding encoding, bool leaveOpen) : base(input, encoding, leaveOpen)
-        {
-        }
-
-        private bool Verify(Stream input)
+        #region Methods
+        /// <summary>
+        /// Verifies the integrity of the PAR2 packet data in <see cref="BinaryReader.BaseStream"/>.
+        /// </summary>
+        /// <returns>true if the calculated MD5 hash of the packet data is equal to the hash specified in the packet header; otherwise, false.</returns>
+        private bool Verify()
         {
             var length = this.ReadInt64() - 32;
             var hash = this.ReadBytes(16);
@@ -74,13 +93,13 @@ namespace Parchive.Library.IO
             {
                 var readCount = 0;
 
-                while (readCount < length && input.Position < input.Length)
+                while (readCount < length && BaseStream.Position < BaseStream.Length)
                 {
                     var bytesToRead = (int)Math.Min(length, int.MaxValue);
                     var buffer = this.ReadBytes(bytesToRead);
                     readCount += buffer.Length;
 
-                    if (readCount < length && input.Position < input.Length)
+                    if (readCount < length && BaseStream.Position < BaseStream.Length)
                         md5.TransformBlock(buffer, 0, buffer.Length, null, 0);
                     else
                         md5.TransformFinalBlock(buffer, 0, buffer.Length);
@@ -90,26 +109,37 @@ namespace Parchive.Library.IO
             }
         }
 
-        public Packet GetNextPacket()
+        /// <summary>
+        /// Reads a PAR2 packet at the given position.
+        /// </summary>
+        /// <param name="position">The position in the stream.</param>
+        /// <returns>A <see cref="Packet"/> object.</returns>
+        private Packet ReadPacket(long position)
         {
-            var list = _Packets.Keys.Where(x => BaseStream.Position <= x);
-
-            if (list.Count() == 0)
-                return null;
-
-            BaseStream.Seek(list.FirstOrDefault(), SeekOrigin.Begin);
-            return Packet.FromStream(BaseStream);
+            BaseStream.Seek(position, SeekOrigin.Begin);
+            return Packet.DefaultFactory.FromStream(BaseStream);
         }
 
-        public Packet GetNextPacket(PacketType type)
+        /// <summary>
+        /// Reads the next PAR2 packet.
+        /// </summary>
+        /// <returns>A <see cref="Packet"/> object, read from the stream;
+        /// null if there are no more packets.</returns>    
+        public Packet ReadPacket()
         {
-            var list = _Packets.Where(x => BaseStream.Position <= x.Key && x.Value == type);
-
-            if (list.Count() == 0)
-                return null;
-            
-            BaseStream.Seek(list.FirstOrDefault().Key, SeekOrigin.Begin);
-            return Packet.FromStream(BaseStream);
+            return _Packets.Keys.Where(x => BaseStream.Position <= x).Select(x => ReadPacket(x)).FirstOrDefault();
         }
+
+        /// <summary>
+        /// Reads the next PAR2 packet of the given packet type.
+        /// </summary>
+        /// <param name="type">The packet type.</param>
+        /// <returns>A <see cref="Packet"/> object of the given type, read from the stream;
+        /// <see cref="null"/> null if there are no more packets of the given type.</returns>
+        public Packet ReadPacket(PacketType type)
+        {
+            return _Packets.Where(x => BaseStream.Position <= x.Key && x.Value == type).Select(x => ReadPacket(x.Key)).FirstOrDefault();
+        }
+        #endregion
     }
 }

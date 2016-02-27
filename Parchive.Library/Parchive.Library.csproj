@@ -56,8 +56,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IO\ParWriter.cs" />
+    <Compile Include="PAR2\RecoveryMatrix.cs" />
     <Compile Include="AnonymousComparer.cs" />
-    <Compile Include="ArrayExtensions.cs" />
+    <Compile Include="Utils\ArrayExtensions.cs" />
     <Compile Include="Exceptions\InitializationError.cs" />
     <Compile Include="Exceptions\InvalidPacketError.cs" />
     <Compile Include="Exceptions\PathError.cs" />
@@ -66,9 +68,9 @@
     <Compile Include="Exceptions\UnsupportedPacketError.cs" />
     <Compile Include="Exceptions\UnsupportedSchemeError.cs" />
     <Compile Include="Exceptions\VerificationError.cs" />
-    <Compile Include="FileInfoExtensions.cs" />
-    <Compile Include="IImmutableCollectionExtensions.cs" />
-    <Compile Include="IO\StreamBuilder.cs" />
+    <Compile Include="Utils\FileInfoExtensions.cs" />
+    <Compile Include="Utils\IImmutableCollectionExtensions.cs" />
+    <Compile Include="IO\StreamFactory.cs" />
     <Compile Include="PAR2\FileID.cs" />
     <Compile Include="PAR2\PacketAttribute.cs" />
     <Compile Include="PAR2\Packet.cs" />
@@ -84,10 +86,9 @@
     <Compile Include="Tasks\TaskGroup.cs" />
     <Compile Include="Tasks\TaskGroupFinishedEventArgs.cs" />
     <Compile Include="Tasks\TaskProgressEventArgs.cs" />
-    <Compile Include="Range.cs" />
+    <Compile Include="Utils\Range.cs" />
     <Compile Include="IO\RecoveryFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PAR2\RecoverySet.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

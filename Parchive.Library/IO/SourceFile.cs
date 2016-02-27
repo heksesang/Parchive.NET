@@ -37,21 +37,21 @@ namespace Parchive.Library.IO
         public long Length { get; set; }
 
         /// <summary>
-        /// The MD5 hash of the first 16 kb of data in the file.
+        /// The MD5 hash of the first 16 kb.
         /// </summary>
         public byte[] Hash16k { get; set; }
         #endregion
 
         #region Methods
         /// <summary>
-        /// Compares the MD5 hash of the first 16 kb of data from `source` with the `Hash16k` property.
+        /// Compares <see cref="Hash16k"/> with the MD5 hash of the first 16kb of the input stream.
         /// </summary>
-        /// <param name="source">A stream to the source file to compare with.</param>
-        /// <returns>true if the hashes are equal; otherwise false.</returns>
-        public bool Equals(Stream source)
+        /// <param name="input">The input stream.</param>
+        /// <returns>true if the hashes are equal; otherwise, false.</returns>
+        public bool Equals(Stream input)
         {
             byte[] buffer = new byte[16384];
-            source.Read(buffer, 0, buffer.Length);
+            input.Read(buffer, 0, buffer.Length);
 
             using (var hash16k = MD5.Create())
             {
@@ -59,19 +59,44 @@ namespace Parchive.Library.IO
                 return hash16k.Hash.SequenceEqual(Hash16k);
             }
         }
+
+        /// <summary>
+        /// Gets the content.
+        /// </summary>
+        /// <returns>A <see cref="Stream"/> object.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// <see cref="Location"/> is not an absolute URI.
+        /// </exception>
+        public Stream GetContent()
+        {
+            return GetContentAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets the content as an asynchronous operation.
+        /// </summary>
+        /// <returns>A <see cref="Stream"/> object.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// <see cref="Location"/> is not an absolute URI.
+        /// </exception>
+        public async Task<Stream> GetContentAsync()
+        {
+            return await StreamFactory.GetContentAsync(Location);
+        }
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Constructor
+        /// Constructs a <see cref="SourceFile"/> from a <see cref="FileDescriptionPacket"/>.
         /// </summary>
-        /// <param name="packet">The File Description packet.</param>
+        /// <param name="packet">The <see cref="FileDescriptionPacket"/>.</param>
         internal SourceFile(FileDescriptionPacket packet)
         {
             ID = packet.FileID;
             Filename = packet.Filename.TrimEnd('\0');
             Location = new Uri(Filename, UriKind.Relative);
             Length = packet.Length;
+            Hash16k = packet.Hash16k;
         } 
         #endregion
     }

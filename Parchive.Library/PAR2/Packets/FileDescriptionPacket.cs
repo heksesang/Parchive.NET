@@ -12,7 +12,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 file description packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x63736544656C6946)]
-    internal class FileDescriptionPacket : Packet
+    public class FileDescriptionPacket : Packet
     {
         #region Properties
         /// <summary>
@@ -70,6 +70,15 @@ namespace Parchive.Library.PAR2.Packets
             }
 
             Filename = sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
+        /// </summary>
+        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
+        protected override void Write(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

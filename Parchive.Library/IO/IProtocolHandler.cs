@@ -10,37 +10,37 @@ using System.Threading.Tasks;
 namespace Parchive.Library.IO
 {
     /// <summary>
-    /// A handler for an URI scheme.
+    /// Defines methods for accessing resources using a specific protocol.
     /// </summary>
     internal interface IProtocolHandler
     {
         /// <summary>
-        /// Supported scheme.
+        /// Supported protocol.
         /// </summary>
         string SupportedProtocol { get; }
 
         /// <summary>
-        /// Gets the content.
+        /// Gets the resource.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         Stream GetContent(Uri uri);
 
         /// <summary>
-        /// Gets the content as an asynchronous operation.
+        /// Gets the resource as an asynchronous operation.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         Task<Stream> GetContentAsync(Uri uri);
     }
 
     /// <summary>
-    /// An implementation of IProtocolHolder for the 'file' scheme.
+    /// Implementation of the `file` protocol.
     /// </summary>
     internal class FileHandler : IProtocolHandler
     {
         /// <summary>
-        /// Supported scheme.
+        /// Supported protocol.
         /// </summary>
         public string SupportedProtocol
         {
@@ -51,20 +51,20 @@ namespace Parchive.Library.IO
         }
 
         /// <summary>
-        /// Gets the content.
+        /// Gets the resource.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public Stream GetContent(Uri uri)
         {
             return File.Open(uri.LocalPath, FileMode.Open, FileAccess.Read);
         }
 
         /// <summary>
-        /// Gets the content as an asynchronous operation.
+        /// Gets the resource as an asynchronous operation.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public Task<Stream> GetContentAsync(Uri uri)
         {
             return Task.FromResult(GetContent(uri));
@@ -72,12 +72,12 @@ namespace Parchive.Library.IO
     }
 
     /// <summary>
-    /// An implementation of IProtocolHolder for the 'http' scheme.
+    /// Implementation of the `http` protocol.
     /// </summary>
     internal class HttpHandler : IProtocolHandler
     {
         /// <summary>
-        /// Supported scheme.
+        /// Supported protocol.
         /// </summary>
         public string SupportedProtocol
         {
@@ -88,20 +88,20 @@ namespace Parchive.Library.IO
         }
 
         /// <summary>
-        /// Gets the content.
+        /// Gets the resource.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public Stream GetContent(Uri uri)
         {
             return GetContentAsync(uri).Result;
         }
 
         /// <summary>
-        /// Gets the content as an asynchronous operation.
+        /// Gets the resource as an asynchronous operation.
         /// </summary>
-        /// <param name="uri">An absolute URI to the content.</param>
-        /// <returns>A stream to the content.</returns>
+        /// <param name="uri">An absolute URI to the resource.</param>
+        /// <returns>A <see cref="Stream"/> object.</returns>
         public async Task<Stream> GetContentAsync(Uri uri)
         {
             return await(new HttpClient().GetStreamAsync(uri));

@@ -12,7 +12,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 main packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x000000006E69614D)]
-    internal class MainPacket : Packet
+    public class MainPacket : Packet
     {
         #region Fields
         private long _SliceSize;
@@ -93,6 +93,15 @@ namespace Parchive.Library.PAR2.Packets
                 byte[] fileId = reader.ReadBytes(16);
                 NonRecoveryFileIDs.Add(fileId);
             }
+        }
+
+        /// <summary>
+        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
+        /// </summary>
+        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
+        protected override void Write(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

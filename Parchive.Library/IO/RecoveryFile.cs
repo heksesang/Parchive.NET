@@ -17,7 +17,7 @@ namespace Parchive.Library.IO
     {
         #region Properties
         /// <summary>
-        /// The path of the file.
+        /// The location of the file.
         /// </summary>
         public Uri Location { get; set; }
         
@@ -33,6 +33,9 @@ namespace Parchive.Library.IO
         #endregion
 
         #region Constants
+        /// <summary>
+        /// Regex for extracting information from the filename.
+        /// </summary>
         private const string _Regex = @"(.+?)(?:\.vol(\d+)\+(\d+))*(\.PAR2|\.par2)";
         #endregion
 
@@ -40,16 +43,16 @@ namespace Parchive.Library.IO
         /// <summary>
         /// Gets a list of source files used to create this PAR2 file.
         /// </summary>
-        /// <returns>A collection of SourceFile objects.</returns>
+        /// <returns>A collection of <see cref="SourceFile"/> objects.</returns>
         public IEnumerable<SourceFile> GetSourceList()
         {
             var yieldedFiles = new List<FileID>();
             
-            using (var reader = new ParReader(StreamBuilder.GetContent(Location)))
+            using (var reader = new ParReader(StreamFactory.GetContent(Location)))
             {
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    var fd = reader.GetNextPacket(Packet.GetPacketType<FileDescriptionPacket>()) as FileDescriptionPacket;
+                    var fd = reader.ReadPacket(Packet.DefaultFactory.GetPacketType<FileDescriptionPacket>()) as FileDescriptionPacket;
 
                     if (fd == null)
                         break;
@@ -62,18 +65,37 @@ namespace Parchive.Library.IO
             }
         }
 
+        /// <summary>
+        /// Gets the content.
+        /// </summary>
+        /// <returns>A <see cref="Stream"/> object.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// <see cref="Location"/> is not an absolute URI.
+        /// </exception>
+        public Stream GetContent()
+        {
+            return GetContentAsync().Result;
+        }
+
+        /// <summary>
+        /// Gets the content as an asynchronous operation.
+        /// </summary>
+        /// <returns>A <see cref="Stream"/> object.</returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// <see cref="Location"/> is not an absolute URI.
+        /// </exception>
         public async Task<Stream> GetContentAsync()
         {
-            return await StreamBuilder.GetContentAsync(Location);
+            return await StreamFactory.GetContentAsync(Location);
         }
         #endregion
 
         #region Static Methods
         /// <summary>
-        /// Parses the URI of a PAR2 file and extracts any metadata from the filename.
+        /// Constructs a <see cref="RecoveryFile"/> object and populates it with data from the input URI.
         /// </summary>
-        /// <param name="uri">The filename of the PAR2 file.</param>
-        /// <returns>A RecoveryFile object containing the metadata.</returns>
+        /// <param name="uri">The input URI.</param>
+        /// <returns>A populated <see cref="RecoveryFile"/> object.</returns>
         public static RecoveryFile FromUri(Uri uri)
         {
             FileInfo fi;

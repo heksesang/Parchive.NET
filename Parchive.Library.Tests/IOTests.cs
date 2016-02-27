@@ -6,6 +6,9 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using Parchive.Library;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System.Diagnostics;
 
 namespace Parchive.Library.Tests
 {
@@ -79,7 +82,7 @@ namespace Parchive.Library.Tests
         [TestMethod]
         public void LoadRecoverySetWithNonExistingRelativePaths()
         {
-            Environment.CurrentDirectory = TestDir + @"\..";
+            Environment.CurrentDirectory = TestDir + @"..";
             var parFiles = Directory.EnumerateFiles(TestDir)
                 .Select(x => new FileInfo(x))
                 .Where(x => x.Extension == ".par2")
@@ -88,6 +91,36 @@ namespace Parchive.Library.Tests
                 .FirstOrDefault();
 
             Assert.AreEqual(false, parFiles.First().Location.IsAbsoluteUri);
+        }
+
+        [TestMethod]
+        public void FindSourceFiles()
+        {
+            var parFiles = Directory.EnumerateFiles(TestDir)
+                .Select(x => new FileInfo(x))
+                .Where(x => x.Extension == ".par2")
+                .Select(x => RecoveryFile.FromUri(new Uri(x.FullName)))
+                .GroupBy(x => x.Name)
+                .FirstOrDefault();
+
+            var sourceFiles = parFiles.SelectMany(x => x.GetSourceList()).Distinct(x => x.ID).ToList();
+
+            sourceFiles.ForEach(x =>
+            {
+                var location = new Uri(new Uri(TestDir + "\\", UriKind.Absolute), x.Location);
+                if (File.Exists(location.AbsolutePath))
+                {
+                    x.Location = location;
+                }
+            });
+
+            var testPath = Path.Combine(TestDir, @"test\VK5v0qUjGhM0SvLLqYOfRjXY043XG04JVYRKjmKYj.part001.rar.tmp");
+            if (sourceFiles.First().Equals(File.Open(testPath, FileMode.Open, FileAccess.Read)))
+            {
+                sourceFiles.First().Location = new Uri(testPath, UriKind.Absolute);
+            }
+
+            Assert.AreNotEqual(0, sourceFiles.Count());
         }
     }
 }

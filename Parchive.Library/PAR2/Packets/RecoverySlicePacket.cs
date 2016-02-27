@@ -12,7 +12,7 @@ namespace Parchive.Library.PAR2.Packets
     /// A PAR2 recovery slice packet.
     /// </summary>
     [Packet(0x00302E3220524150, 0x63696C5376636552)]
-    internal class RecoverySlicePacket : Packet
+    public class RecoverySlicePacket : Packet
     {
         #region Properties
         public uint Exponent { get; set; }
@@ -30,6 +30,15 @@ namespace Parchive.Library.PAR2.Packets
 
             reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
             RecoverySlice = reader.ReadBytes((int)_Length - 4);
+        }
+
+        /// <summary>
+        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
+        /// </summary>
+        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
+        protected override void Write(BinaryWriter writer)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }
