@@ -56,8 +56,6 @@ namespace Parchive.Library.PAR2
             /// <param name="assemblies">The assemblies to search.</param>
             public Factory(IEnumerable<Assembly> assemblies)
             {
-                var types = typeof(Packet).Assembly.GetTypes();
-
                 foreach (var assembly in assemblies)
                 {
                     foreach (var type in assembly.GetTypes().Where(x => !x.IsAbstract && typeof(Packet).IsAssignableFrom(x)))

@@ -87,6 +87,13 @@ namespace Parchive.Library.IO
 
         #region Constructors
         /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public SourceFile()
+        {
+        }
+
+        /// <summary>
         /// Constructs a <see cref="SourceFile"/> from a <see cref="FileDescriptionPacket"/>.
         /// </summary>
         /// <param name="packet">The <see cref="FileDescriptionPacket"/>.</param>
@@ -97,7 +104,7 @@ namespace Parchive.Library.IO
             Location = new Uri(Filename, UriKind.Relative);
             Length = packet.Length;
             Hash16k = packet.Hash16k;
-        } 
+        }
         #endregion
     }
 }
