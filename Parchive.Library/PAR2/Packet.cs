@@ -58,7 +58,7 @@ namespace Parchive.Library.PAR2
             {
                 foreach (var assembly in assemblies)
                 {
-                    foreach (var type in assembly.GetTypes().Where(x => !x.IsAbstract && typeof(Packet).IsAssignableFrom(x)))
+                    foreach (var type in assembly.GetTypes().Where(x => x.IsClass && !x.IsAbstract && typeof(Packet).IsAssignableFrom(x)))
                     {
                         var attributes = type.GetCustomAttributes(typeof(PacketAttribute), false) as PacketAttribute[];
 
