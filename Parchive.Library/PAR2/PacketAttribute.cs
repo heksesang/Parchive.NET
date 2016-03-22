@@ -12,26 +12,15 @@ namespace Parchive.Library.PAR2
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = false)]
     public class PacketAttribute : Attribute
     {
-        #region Fields
-        // The type of the packet.
-        private PacketType _Type;
-        #endregion
-
         #region Constructors
         public PacketAttribute(long a, long b)
         {
-            _Type = new PacketType(a, b);
+            Type = new PacketType(a, b);
         }
         #endregion
 
         #region Properties
-        public PacketType Type
-        {
-            get
-            {
-                return _Type;
-            }
-        }
+        public PacketType Type { get; private set; }
         #endregion
     }
 }

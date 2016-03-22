@@ -1,4 +1,4 @@
-﻿namespace Parchive.Library.Math.Galois
+﻿namespace Parchive.Library.RecoveryMath.Galois
 
 /// Galois field symbol
 type gfsymbol(x:int, t:Table) =
@@ -43,6 +43,16 @@ type gfsymbol(x:int, t:Table) =
     static member (/) (a:int, b:gfsymbol):gfsymbol =
         if a >= b.Table.Size || a < 0 then invalidArg "" "Cannot divide values from different tables."
         gfsymbol(b.Table.Div b.Value a, b.Table)
+
+    static member Pow(a:gfsymbol, b:gfsymbol):gfsymbol =
+        if a.Table <> b.Table then invalidArg "" "Cannot exponentiate values from different tables."
+        gfsymbol(a.Table.Pow a.Value b.Value, a.Table)
+    static member Pow(a:gfsymbol, b:int):gfsymbol =
+        if b >= a.Table.Size || b < 0 then invalidArg "" "Cannot exponentiate values from different tables."
+        gfsymbol(a.Table.Pow a.Value b, a.Table)
+    static member Pow(a:int, b:gfsymbol):gfsymbol =
+        if a >= b.Table.Size || a < 0 then invalidArg "" "Cannot exponentiate values from different tables."
+        gfsymbol(b.Table.Pow a b.Value, b.Table)
 
     static member op_Explicit(s:gfsymbol) :int =
         s.Value

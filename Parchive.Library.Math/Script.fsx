@@ -2,6 +2,7 @@
 // for more guidance on F# programming.
 
 #load "GaloisField.fs"
-open Parchive.Library.Math
+open Parchive.Library.RecoveryMath
 
 // Define your library scripting code here
+

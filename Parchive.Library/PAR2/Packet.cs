@@ -1,4 +1,5 @@
 ﻿using Parchive.Library.Exceptions;
+using Parchive.Library.IO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -131,38 +132,19 @@ namespace Parchive.Library.PAR2
 
                         packet = Activator.CreateInstance(t) as Packet;
 
-                        packet._Offset = reader.BaseStream.Position;
-                        packet._Length = length;
-
                         packet.Checksum = hash;
                         packet.RecoverySetID = recoverySetID;
 
-                        packet.Initialize(reader);
+                        packet.Initialize(new ConstrainedStream(reader.BaseStream, reader.BaseStream.Position, length, true));
 
-                        if (!packet.Verify(reader))
+                        if (!packet.Verify())
                         {
                             throw new InvalidPacketError("Verification failed.");
                         }
-
-                        input.Seek(packet._Offset + packet._Length, SeekOrigin.Begin);
                     }
                 }
 
                 return packet;
-            }
-
-
-            /// <summary>
-            /// Writes a PAR2 packet to the output stream.
-            /// </summary>
-            /// <param name="output">The output stream.</param>
-            /// <param name="packet">The packet to write.</param>
-            /// <exception cref="Parchive.Library.Exceptions.TooLargeNumberError">
-            /// The length of the packet is too large.
-            /// </exception>
-            public void ToStream(Stream output, Packet packet)
-            {
-
             }
 
             /// <summary>
@@ -198,69 +180,110 @@ namespace Parchive.Library.PAR2
         public static readonly Factory DefaultFactory = new Factory(typeof(Packet).Assembly);
         #endregion
 
-        #region Fields
-        protected long _Offset;
-        protected long _Length;
-        #endregion
-
         #region Properties
         /// <summary>
         /// The checksum of the packet.
-        /// Calculated from RecoverySetID + PacketType + packet body.
         /// </summary>
-        public byte[] Checksum { get; private set; }
+        protected byte[] Checksum { get; set; }
+
+        /// <summary>
+        /// The packet type.
+        /// </summary>
+        protected PacketType PacketType { get; set; }
 
         /// <summary>
         /// The ID of the recovery set.
         /// </summary>
-        public byte[] RecoverySetID { get; private set; }
+        protected byte[] RecoverySetID { get; set; }
+
+        /// <summary>
+        /// The packet body in the form of a <see cref="Stream"/> object.
+        /// </summary>
+        public abstract Stream Body
+        {
+            get;
+        }
+
+        /// <summary>
+        /// The packet header in the form of a <see cref="Stream"/> object.
+        /// </summary>
+        public Stream Header
+        {
+            get
+            {
+                using (var writer = new BinaryWriter(new MemoryStream(new byte[64]), Encoding.ASCII, true))
+                {
+                    writer.Write(Signature);
+                    writer.Write(64 + Body.Length);
+                    writer.Write(Checksum);
+                    writer.Write(RecoverySetID);
+                    writer.Write(PacketType.Identifier);
+
+                    writer.BaseStream.Seek(0, SeekOrigin.Begin);
+
+                    return writer.BaseStream;
+                }
+            }
+        }
         #endregion
 
         #region Methods
         /// <summary>
-        /// Initializes the packet from a stream through a <see cref="BinaryReader"/> object.
+        /// Initializes the packet from a stream through a <see cref="Stream"/>.
         /// </summary>
-        /// <param name="reader">The <see cref="BinaryReader"/> object.</param>
-        protected abstract void Initialize(BinaryReader reader);
+        /// <param name="stream">A <see cref="Stream"/> containing the packet.</param>
+        protected abstract void Initialize(Stream stream);
 
         /// <summary>
-        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
+        /// Calculates the checksum of the packet.
         /// </summary>
-        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
-        protected abstract void Write(BinaryWriter writer);
-
-        /// <summary>
-        /// Verifies the integrity of the packet by calculating the checksum of
-        /// the RecoverySetID, PacketType, and the remaining data from a stream.
-        /// </summary>
-        /// <param name="reader">The reader that provides access to the stream.</param>
-        /// <returns>true if the integrity of the packet is intact; otherwise, false.</returns>
-        public bool Verify(BinaryReader reader)
+        /// <returns>A <see cref="byte[]"/> containing a MD5 hash of the packet.</returns>
+        protected byte[] CalculateChecksum()
         {
             using (var crypt = MD5.Create())
             {
-                crypt.TransformBlock(RecoverySetID, 0, RecoverySetID.Length, null, 0);
-
-                var attributes = (PacketAttribute[])this.GetType().GetCustomAttributes(typeof(PacketAttribute), false);
-                if (attributes.Length == 0)
+                using (var reader = new BinaryReader(Header, Encoding.ASCII))
                 {
-                    throw new VerificationError("PacketAttribute is required to verify a packet.");
-                }
-                var packetType = attributes[0].Type.Identifier;
-
-                crypt.TransformBlock(packetType, 0, packetType.Length, null, 0);
-
-                reader.BaseStream.Seek(_Offset, SeekOrigin.Begin);
-                var body = reader.ReadBytes((int)_Length);
-                crypt.TransformFinalBlock(body, 0, body.Length);
-
-                if (crypt.Hash.SequenceEqual(Checksum))
-                {
-                    return true;
+                    reader.BaseStream.Seek(32, SeekOrigin.Begin);
+                    var header = reader.ReadBytes(32);
+                    crypt.TransformBlock(header, 0, header.Length, null, 0);
                 }
 
-                return false;
+                using (var reader = new BinaryReader(Body, Encoding.ASCII))
+                {
+                    while (reader.BaseStream.Position < reader.BaseStream.Length)
+                    {
+                        var body = reader.ReadBytes(1048576);
+                        crypt.TransformBlock(body, 0, body.Length, null, 0);
+                    }
+
+                    crypt.TransformFinalBlock(null, 0, 0);
+                }
+
+                return crypt.Hash;
             }
+        }
+
+        /// <summary>
+        /// Updates the stored checksum of the packet.
+        /// </summary>
+        protected void UpdateChecksum()
+        {
+            Checksum = CalculateChecksum();
+        }
+
+        /// <summary>
+        /// Verifies the integrity of the packet by calculating the checksum of the packet and comparing it to the stored checksum.
+        /// </summary>
+        /// <returns>true if the integrity of the packet is intact; otherwise, false.</returns>
+        protected bool Verify()
+        {
+            if (CalculateChecksum().SequenceEqual(Checksum))
+            {
+                return true;
+            }
+
+            return false;
         }
         #endregion
     }

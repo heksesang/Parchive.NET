@@ -16,7 +16,10 @@ namespace Parchive.Library.IO
     public class ParWriter : BinaryWriter
     {
         #region Fields
-        private IImmutableDictionary<long, long> _Packets = ImmutableDictionary<long, long>.Empty;
+        /// <summary>
+        /// Pairs of start and length for each packet in the file.
+        /// </summary>
+        private IImmutableDictionary<long, long> packets = ImmutableDictionary.Create<long, long>();
         #endregion
 
         #region Constructors
@@ -38,46 +41,49 @@ namespace Parchive.Library.IO
             var origin = BaseStream.Position;
             BaseStream.Seek(0, SeekOrigin.Begin);
 
-            using (var reader = new BinaryReader(output, Encoding.ASCII, true))
+            if (output.CanRead && output.CanSeek)
             {
-                while (BaseStream.Position < BaseStream.Length)
+                using (var reader = new BinaryReader(output, Encoding.ASCII, true))
                 {
-                    int b;
-
-                    do
+                    while (BaseStream.Position < BaseStream.Length)
                     {
-                        b = BaseStream.ReadByte();
+                        int b;
 
-                        if (b == 'P')
+                        do
                         {
-                            byte[] buffer = new byte[8];
-                            BaseStream.Read(buffer, 1, 7);
-                            buffer[0] = (byte)b;
+                            b = BaseStream.ReadByte();
 
-                            if (Encoding.UTF8.GetString(buffer) == "PAR2\0PKT")
+                            if (b == 'P')
                             {
-                                var pos = BaseStream.Position - 8;
-                                var ok = Verify(reader);
-                                var end = BaseStream.Position;
+                                byte[] buffer = new byte[8];
+                                BaseStream.Read(buffer, 1, 7);
+                                buffer[0] = (byte)b;
 
-                                if (ok)
+                                if (Encoding.UTF8.GetString(buffer) == "PAR2\0PKT")
                                 {
-                                    BaseStream.Seek(pos + 8, SeekOrigin.Begin);
-                                    _Packets = _Packets.Add(pos, reader.ReadInt64());
-                                    BaseStream.Seek(end, SeekOrigin.Begin);
-                                }
-                                else
-                                {
-                                    BaseStream.Seek(pos + 1, SeekOrigin.Begin);
+                                    var pos = BaseStream.Position - 8;
+                                    var ok = Verify(reader);
+                                    var end = BaseStream.Position;
+
+                                    if (ok)
+                                    {
+                                        BaseStream.Seek(pos + 8, SeekOrigin.Begin);
+                                        packets = packets.Add(pos, reader.ReadInt64());
+                                        BaseStream.Seek(end, SeekOrigin.Begin);
+                                    }
+                                    else
+                                    {
+                                        BaseStream.Seek(pos + 1, SeekOrigin.Begin);
+                                    }
                                 }
                             }
                         }
+                        while (b != 'P');
                     }
-                    while (b != 'P');
                 }
-            }
 
-            BaseStream.Seek(origin, SeekOrigin.Begin);
+                BaseStream.Seek(origin, SeekOrigin.Begin);
+            }
         }
         #endregion
 
@@ -123,26 +129,30 @@ namespace Parchive.Library.IO
         /// Writes a <see cref="Packet"/> object to the currrent stream.
         /// </summary>
         /// <param name="packet">The <see cref="Packet"/> object.</param>
-        void Write(Packet packet)
+        public void Write(Packet packet)
         {
             var range = new Range<long>();
             range.Minimum = BaseStream.Position;
             
-            Packet.DefaultFactory.ToStream(BaseStream, packet);
+            packet.Header.CopyTo(BaseStream);
+            packet.Body.CopyTo(BaseStream);
+
             range.Maximum = BaseStream.Position - 1;
 
-            var overwrittenPackets = _Packets
+            var overwrittenPackets = packets
                 .Where(x => range.IsInsideRange(new Range<long>
                 {
                     Minimum = x.Key,
-                    Maximum = x.Key + x.Value
+                    Maximum = x.Key + x.Value - 1
                 }))
                 .Select(x => x.Key);
 
             foreach (var key in overwrittenPackets)
             {
-                _Packets = _Packets.Remove(key);
+                packets = packets.Remove(key);
             }
+
+            packets = packets.Add(range.Minimum, range.Maximum - range.Minimum + 1);
         }
         #endregion
     }

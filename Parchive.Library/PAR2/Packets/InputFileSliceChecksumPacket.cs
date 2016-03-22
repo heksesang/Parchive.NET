@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,35 +41,40 @@ namespace Parchive.Library.PAR2.Packets
         /// <summary>
         /// MD5 Hash and CRC32 pairs for the input file slices.
         /// </summary>
-        public List<InputFileSliceChecksum> Checksums = new List<InputFileSliceChecksum>();
+        public ImmutableList<InputFileSliceChecksum> Checksums { get; set; } = ImmutableList.Create<InputFileSliceChecksum>();
+
+        /// <summary>
+        /// The packet body in the form of a <see cref="Stream"/> object.
+        /// </summary>
+        public override Stream Body
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         #region Methods
         /// <summary>
-        /// Initializes the packet from a stream.
+        /// Initializes the packet from a stream through a <see cref="Stream"/>.
         /// </summary>
-        /// <param name="reader">The reader that provides access to the stream.</param>
-        protected override void Initialize(BinaryReader reader)
+        /// <param name="stream">A <see cref="Stream"/> containing the packet.</param>
+        protected override void Initialize(Stream stream)
         {
-            FileID = new FileID { ID = reader.ReadBytes(16) };
-
-            while (reader.BaseStream.Position < _Offset + _Length)
+            using (var reader = new BinaryReader(stream, Encoding.ASCII, true))
             {
-                InputFileSliceChecksum checksum = new InputFileSliceChecksum();
-                checksum.MD5 = reader.ReadBytes(16);
-                checksum.CRC32 = reader.ReadUInt32();
+                FileID = new FileID { ID = reader.ReadBytes(16) };
 
-                Checksums.Add(checksum);
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    Checksums.Add(new InputFileSliceChecksum
+                    {
+                        MD5 = reader.ReadBytes(16),
+                        CRC32 = reader.ReadUInt32()
+                    });
+                }
             }
-        }
-
-        /// <summary>
-        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
-        /// </summary>
-        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
-        protected override void Write(BinaryWriter writer)
-        {
-            throw new NotImplementedException();
         }
         #endregion
     }

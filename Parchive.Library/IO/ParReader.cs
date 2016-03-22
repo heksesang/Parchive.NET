@@ -16,7 +16,10 @@ namespace Parchive.Library.IO
     public class ParReader : BinaryReader
     {
         #region Fields
-        private IImmutableDictionary<long, PacketType> _Packets = ImmutableDictionary<long, PacketType>.Empty;
+        /// <summary>
+        /// Pairs of start and packet type for each packet in the file.
+        /// </summary>
+        private IImmutableDictionary<long, PacketType> packets = ImmutableDictionary<long, PacketType>.Empty;
         #endregion
 
         #region Constructors
@@ -63,7 +66,7 @@ namespace Parchive.Library.IO
                                 BaseStream.Seek(pos + 48, SeekOrigin.Begin);
                                 var type = this.ReadBytes(16);
                                 BaseStream.Seek(end, SeekOrigin.Begin);
-                                _Packets = _Packets.Add(pos, new PacketType(type));
+                                packets = packets.Add(pos, new PacketType(type));
                             }
                             else
                             {
@@ -127,7 +130,7 @@ namespace Parchive.Library.IO
         /// null if there are no more packets.</returns>    
         public Packet ReadPacket()
         {
-            return _Packets.Keys.Where(x => BaseStream.Position <= x).Select(x => ReadPacket(x)).FirstOrDefault();
+            return packets.Keys.Where(x => BaseStream.Position <= x).Select(x => ReadPacket(x)).FirstOrDefault();
         }
 
         /// <summary>
@@ -138,7 +141,7 @@ namespace Parchive.Library.IO
         /// <see cref="null"/> null if there are no more packets of the given type.</returns>
         public Packet ReadPacket(PacketType type)
         {
-            return _Packets.Where(x => BaseStream.Position <= x.Key && x.Value == type).Select(x => ReadPacket(x.Key)).FirstOrDefault();
+            return packets.Where(x => BaseStream.Position <= x.Key && x.Value == type).Select(x => ReadPacket(x.Key)).FirstOrDefault();
         }
         #endregion
     }

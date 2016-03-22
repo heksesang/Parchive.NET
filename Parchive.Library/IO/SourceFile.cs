@@ -81,7 +81,7 @@ namespace Parchive.Library.IO
         /// </exception>
         public async Task<Stream> GetContentAsync()
         {
-            return await StreamFactory.GetContentAsync(Location);
+            return await StreamFactory.GetContentStreamAsync(Location);
         }
         #endregion
 
@@ -91,19 +91,6 @@ namespace Parchive.Library.IO
         /// </summary>
         public SourceFile()
         {
-        }
-
-        /// <summary>
-        /// Constructs a <see cref="SourceFile"/> from a <see cref="FileDescriptionPacket"/>.
-        /// </summary>
-        /// <param name="packet">The <see cref="FileDescriptionPacket"/>.</param>
-        internal SourceFile(FileDescriptionPacket packet)
-        {
-            ID = packet.FileID;
-            Filename = packet.Filename.TrimEnd('\0');
-            Location = new Uri(Filename, UriKind.Relative);
-            Length = packet.Length;
-            Hash16k = packet.Hash16k;
         }
         #endregion
     }

@@ -2,8 +2,8 @@
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Parchive.Library.Math.Galois;
-using Parchive.Library.Math;
+using Parchive.Library.RecoveryMath.Galois;
+using Parchive.Library.RecoveryMath;
 
 namespace Parchive.Library.Tests
 {
@@ -40,42 +40,6 @@ namespace Parchive.Library.Tests
         public void GFPower()
         {
             Assert.AreEqual(85, table.Pow(15, 2));
-        }
-
-        [TestMethod]
-        public void Restore()
-        {
-            var values = new List<Tuple<int, int>>();
-            var exp = new List<int>();
-
-            for (int i = 1, e = 1; i <= 3; i++)
-            {
-                var constant = table.Pow(2, e);
-                values.Add(Tuple.Create(i, constant));
-
-                exp.Add(i);
-
-                do
-                {
-                    e++;
-                } while (!(e % 3 != 0 && e % 5 != 0 && e % 17 != 0 && e % 257 != 0));
-            }
-
-            var parity = new List<Tuple<int, int, int>>();
-            
-            for (int i = 0; i < exp.Count; i++)
-            {
-                var e = exp[i];
-                var p = Recovery.generateErrorCode(values, e);
-                parity.Add(Tuple.Create(values[i].Item2, e, p));
-            }
-
-            var source = Recovery.restoreData(parity);
-            
-            for (int i = 0; i < source.Length; i++)
-            {
-                Assert.AreEqual(values[i].Item1, source[i]);
-            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Parchive.Library.Math.AssemblyInfo
+﻿namespace Parchive.Library.RecoveryMath.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices

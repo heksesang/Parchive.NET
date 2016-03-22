@@ -41,44 +41,46 @@ namespace Parchive.Library.PAR2.Packets
         /// The filename must be unique.
         /// </summary>
         public string Filename { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The packet body in the form of a <see cref="Stream"/> object.
+        /// </summary>
+        public override Stream Body
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
         #endregion
 
         #region Methods
         /// <summary>
-        /// Initializes the packet from a stream.
+        /// Initializes the packet from a stream through a <see cref="Stream"/>.
         /// </summary>
-        /// <param name="reader">The reader that provides access to the stream.</param>
-        /// <exception cref="Parchive.Library.Exceptions.TooLargeNumberError">
-        /// The length of the file is too large.
-        /// </exception>
-        protected override void Initialize(BinaryReader reader)
+        /// <param name="stream">A <see cref="Stream"/> containing the packet.</param>
+        protected override void Initialize(Stream stream)
         {
-            FileID = new FileID { ID = reader.ReadBytes(16) };
-            Hash = reader.ReadBytes(16);
-            Hash16k = reader.ReadBytes(16);
-
-            if ((Length = reader.ReadInt64()) < 0)
+            using (var reader = new BinaryReader(stream, Encoding.ASCII, true))
             {
-                throw new TooLargeNumberError();
+                FileID = new FileID { ID = reader.ReadBytes(16) };
+                Hash = reader.ReadBytes(16);
+                Hash16k = reader.ReadBytes(16);
+
+                if ((Length = reader.ReadInt64()) < 0)
+                {
+                    throw new TooLargeNumberError();
+                }
+
+                StringBuilder sb = new StringBuilder();
+
+                while (reader.BaseStream.Position < reader.BaseStream.Length)
+                {
+                    sb.Append(reader.ReadChars(4));
+                }
+
+                Filename = sb.ToString();
             }
-
-            StringBuilder sb = new StringBuilder();
-
-            while (reader.BaseStream.Position < _Offset + _Length)
-            {
-                sb.Append(reader.ReadChars(4));
-            }
-
-            Filename = sb.ToString();
-        }
-
-        /// <summary>
-        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
-        /// </summary>
-        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
-        protected override void Write(BinaryWriter writer)
-        {
-            throw new NotImplementedException();
         }
         #endregion
     }

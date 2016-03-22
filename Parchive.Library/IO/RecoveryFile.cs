@@ -36,7 +36,7 @@ namespace Parchive.Library.IO
         /// <summary>
         /// Regex for extracting information from the filename.
         /// </summary>
-        private const string _Regex = @"(.+?)(?:\.vol(\d+)\+(\d+))*(\.PAR2|\.par2)";
+        private const string Regex = @"(.+?)(?:\.vol(\d+)\+(\d+))*(\.PAR2|\.par2)";
         #endregion
 
         #region Methods
@@ -47,8 +47,8 @@ namespace Parchive.Library.IO
         public IEnumerable<SourceFile> GetSourceList()
         {
             var yieldedFiles = new List<FileID>();
-            
-            using (var reader = new ParReader(StreamFactory.GetContent(Location)))
+
+            using (var reader = new ParReader(StreamFactory.GetContentStreamAsync(Location).Result))
             {
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
@@ -60,21 +60,9 @@ namespace Parchive.Library.IO
                     if (yieldedFiles.Contains(fd.FileID))
                         continue;
 
-                    yield return new SourceFile(fd);
+                    yield return fd.ToSourceFile();
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets the content.
-        /// </summary>
-        /// <returns>A <see cref="Stream"/> object.</returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// <see cref="Location"/> is not an absolute URI.
-        /// </exception>
-        public Stream GetContent()
-        {
-            return GetContentAsync().Result;
         }
 
         /// <summary>
@@ -84,9 +72,9 @@ namespace Parchive.Library.IO
         /// <exception cref="System.InvalidOperationException">
         /// <see cref="Location"/> is not an absolute URI.
         /// </exception>
-        public async Task<Stream> GetContentAsync()
+        public async Task<Stream> GetContentStreamAsync()
         {
-            return await StreamFactory.GetContentAsync(Location);
+            return await StreamFactory.GetContentStreamAsync(Location);
         }
         #endregion
 
@@ -105,7 +93,7 @@ namespace Parchive.Library.IO
             else
                 fi = new FileInfo(uri.ToString());
 
-            var m = Regex.Match(fi.Name, _Regex);
+            var m = System.Text.RegularExpressions.Regex.Match(fi.Name, Regex);
 
             long start;
             long count;

@@ -14,31 +14,67 @@ namespace Parchive.Library.PAR2.Packets
     [Packet(0x00302E3220524150, 0x63696C5376636552)]
     public class RecoverySlicePacket : Packet
     {
+        #region Fields
+        private uint exponent;
+        private Stream stream;
+        #endregion
+
         #region Properties
-        public uint Exponent { get; set; }
-        public byte[] RecoverySlice { get; set; }
+        /// <summary>
+        /// The exponent used by this recovery slice.
+        /// </summary>
+        public uint Exponent
+        {
+            get
+            {
+                return exponent;
+            }
+            set
+            {
+                if (value <= ushort.MaxValue)
+                    exponent = value;
+            }
+        }
+
+        /// <summary>
+        /// A <see cref="Stream"/> of recovery data.
+        /// </summary>
+        public Stream Stream
+        {
+            get
+            {
+                return stream;
+            }
+            set
+            {
+                stream = value;
+            }
+        }
+
+        /// <summary>
+        /// The packet body in the form of a <see cref="Stream"/> object.
+        /// </summary>
+        public override Stream Body
+        {
+            get
+            {
+                return stream;
+            }
+        }
         #endregion
 
         #region Methods
         /// <summary>
-        /// Initializes the packet from a stream.
+        /// Initializes the packet from a stream through a <see cref="Stream"/>.
         /// </summary>
-        /// <param name="reader">The reader that provides access to the stream.</param>
-        protected override void Initialize(BinaryReader reader)
+        /// <param name="stream">A <see cref="Stream"/> containing the packet.</param>
+        protected override void Initialize(Stream stream)
         {
-            Exponent = reader.ReadUInt32();
-
-            reader.BaseStream.Seek(_Offset + 4, SeekOrigin.Begin);
-            RecoverySlice = reader.ReadBytes((int)_Length - 4);
-        }
-
-        /// <summary>
-        /// Writes this packet to a stream through a <see cref="BinaryWriter"/> object.
-        /// </summary>
-        /// <param name="writer">The <see cref="BinaryWriter"/> object.</param>
-        protected override void Write(BinaryWriter writer)
-        {
-            throw new NotImplementedException();
+            using (var reader = new BinaryReader(stream, Encoding.ASCII, true))
+            {
+                Exponent = reader.ReadUInt32();
+                this.stream = stream;
+            }
         }
         #endregion
     }
